@@ -22,6 +22,8 @@ public class MenuItemFactoryTest {
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(MenuType.FOOD);
         MenuItem item = factory.createMenuItem(request);
 
+        assertNotNull(item.getId());
+
         assertInstanceOf(Food.class, item);
         Food food = (Food) item;
 
@@ -42,6 +44,8 @@ public class MenuItemFactoryTest {
 
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(MenuType.DRINK);
         MenuItem item = factory.createMenuItem(request);
+
+        assertNotNull(item.getId());
 
         assertInstanceOf(Drink.class, item);
         Drink drink = (Drink) item;
