@@ -55,17 +55,18 @@ public class MenuControllerTest {
         request.setDescription("Beef burger");
         request.setPrice(25000.0);
         request.setIsSpicy(true);
-        // If you expect to handle MenuType in controller, you need to add that to MenuItemRequest
 
         Mockito.when(menuService.addMenuItem(Mockito.eq(MenuType.FOOD), any(MenuItemRequest.class)))
                 .thenReturn(sampleFood);
 
         mockMvc.perform(post("/menu")
+                        .param("menuType", "FOOD")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Burger"));
     }
+
 
     @Test
     void testGetAllMenuItems() throws Exception {
