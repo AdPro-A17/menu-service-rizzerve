@@ -8,9 +8,10 @@ import rizzerve.menuservice.factory.MenuItemFactory;
 import rizzerve.menuservice.factory.MenuItemFactoryCreator;
 import rizzerve.menuservice.model.Food;
 import rizzerve.menuservice.model.MenuItem;
-import rizzerve.menuservice.repository.MenuItemRepository;
+import rizzerve.menuservice.repository.MenuRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -20,7 +21,7 @@ public class MenuServiceTest {
 
     @BeforeEach
     void setUp() {
-        MenuItemRepository repository = new MenuItemRepository();
+        MenuRepository repository = new MenuRepository();
         this.menuService = new MenuService(repository);
     }
 
@@ -70,7 +71,8 @@ public class MenuServiceTest {
 
     @Test
     void testGetMenuItemByInvalidIdShouldReturnNull() {
-        MenuItem result = menuService.getMenuItemById("non-existent-id");
+        UUID fakeId = UUID.randomUUID();
+        MenuItem result = menuService.getMenuItemById(fakeId);
         assertNull(result);
     }
 }
