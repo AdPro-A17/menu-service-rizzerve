@@ -17,12 +17,12 @@ public class MenuItemFactoryTest {
         request.setName("Spicy Chicken");
         request.setDescription("Hot grilled chicken");
         request.setPrice(35000.0);
-        request.setIsSpicy(true); // <-- new boolean field
+        request.setIsSpicy(true);
 
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(MenuType.FOOD);
         MenuItem item = factory.createMenuItem(request);
 
-        assertInstanceOf(Food);
+        assertInstanceOf(Food.class, item);
         Food food = (Food) item;
 
         assertEquals("Spicy Chicken", food.getName());
@@ -38,12 +38,12 @@ public class MenuItemFactoryTest {
         request.setName("Iced Lemon Tea");
         request.setDescription("Cold and refreshing");
         request.setPrice(18000.0);
-        request.setIsCold(true); // boolean for drinks
+        request.setIsCold(true);
 
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(MenuType.DRINK);
         MenuItem item = factory.createMenuItem(request);
 
-        assertInstanceOf(Drink);
+        assertInstanceOf(Drink.class, item);
         Drink drink = (Drink) item;
 
         assertEquals("Iced Lemon Tea", drink.getName());
