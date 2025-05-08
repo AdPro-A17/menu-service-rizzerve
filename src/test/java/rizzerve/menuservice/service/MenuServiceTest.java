@@ -115,4 +115,50 @@ public class MenuServiceTest {
         
         assertNull(result);
     }
+
+    @Test
+    void testDeleteMenuItem() {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("Deletable Item");
+        request.setDescription("Will be deleted");
+        request.setPrice(10000.0);
+        request.setIsSpicy(true);
+        
+        MenuItem createdItem = menuService.addMenuItem(MenuType.FOOD, request);
+        UUID itemId = createdItem.getId();
+        
+        MenuItem deletedItem = menuService.deleteMenuItem(itemId);
+        
+        assertNotNull(deletedItem);
+        assertEquals(itemId, deletedItem.getId());
+        assertEquals("Deletable Item", deletedItem.getName());
+        
+        // Verify the item no longer exists
+        MenuItem shouldBeNull = menuService.getMenuItemById(itemId);
+        assertNull(shouldBeNull);
+    }
+
+    @Test
+    void testDeleteNonExistentMenuItemReturnsNull() {
+        UUID nonExistentId = UUID.randomUUID();
+        MenuItem result = menuService.deleteMenuItem(nonExistentId);
+        assertNull(result);
+    }
+    
+    @Test
+    void testAddMenuItemWithDrinkType() {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("Orange Juice");
+        request.setDescription("Fresh orange juice");
+        request.setPrice(15000.0);
+        request.setIsCold(true);
+
+        MenuItem savedItem = menuService.addMenuItem(MenuType.DRINK, request);
+
+        assertNotNull(savedItem.getId());
+        assertEquals("Orange Juice", savedItem.getName());
+        assertEquals(15000.0, savedItem.getPrice());
+        assertInstanceOf(rizzerve.menuservice.model.Drink.class, savedItem);
+        assertTrue(((rizzerve.menuservice.model.Drink)savedItem).getIsCold());
+    }
 }

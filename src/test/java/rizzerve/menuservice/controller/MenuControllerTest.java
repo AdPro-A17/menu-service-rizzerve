@@ -4,21 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.model.Food;
 import rizzerve.menuservice.service.MenuService;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 import java.util.UUID;
@@ -28,25 +27,33 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-@WebMvcTest(MenuController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class MenuControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @Autowired
     private MenuService menuService;
 
     @Autowired
     private ObjectMapper objectMapper;
-    
-    @Autowired
-    private WebApplicationContext webApplicationContext;
 
     private Food sampleFood;
 
+    @TestConfiguration
+    static class MenuControllerTestConfig {
+        @Bean
+        public MenuService menuService() {
+            return Mockito.mock(MenuService.class);
+        }
+    }
+
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        // Reset mock before each test
+        Mockito.reset(menuService);
         
         sampleFood = new Food();
         sampleFood.setId(UUID.randomUUID());
@@ -154,5 +161,37 @@ public class MenuControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testGetNonExistentMenuItemById() throws Exception {
+        UUID nonExistentId = UUID.randomUUID();
+        Mockito.when(menuService.getMenuItemById(nonExistentId)).thenReturn(null);
+
+        mockMvc.perform(get("/menu/{id}", nonExistentId.toString()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testDeleteNonExistentMenuItem() throws Exception {
+        UUID nonExistentId = UUID.randomUUID();
+        Mockito.when(menuService.deleteMenuItem(nonExistentId)).thenReturn(null);
+
+        mockMvc.perform(delete("/menu/{id}", nonExistentId.toString()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testCreateMenuItemWithInvalidMenuType() throws Exception {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("Burger");
+        request.setDescription("Beef burger");
+        request.setPrice(25000.0);
+        
+        mockMvc.perform(post("/menu")
+                .param("menuType", "INVALID_TYPE")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }
