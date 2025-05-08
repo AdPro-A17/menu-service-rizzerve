@@ -40,6 +40,20 @@ public class MenuServiceTest {
     }
 
     @Test
+    void testAddMenuItemWithEmptyNameShouldThrow() {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("");
+        request.setDescription("Test description");
+        request.setPrice(10000.0);
+        
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            menuService.addMenuItem(MenuType.FOOD, request);
+        });
+        
+        assertTrue(exception.getMessage().contains("Name"));
+    }
+
+    @Test
     void testGetAllMenuItems() {
         MenuItemRequest request = new MenuItemRequest();
         request.setName("Nasi Goreng");

@@ -23,6 +23,7 @@ public class MenuService {
     }
 
     public MenuItem addMenuItem(MenuType type, MenuItemRequest request) {
+        validateRequest(request);
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(type);
         MenuItem item = factory.createMenuItem(request);
         return menuRepository.save(item);
@@ -41,6 +42,7 @@ public class MenuService {
     }
 
     public MenuItem updateMenuItem(UUID id, MenuItemRequest request) {
+        validateRequest(request);
         MenuItem existingItem = menuRepository.findById(id);
         if (existingItem == null) {
             return null;
@@ -57,5 +59,17 @@ public class MenuService {
         }
         
         return menuRepository.save(existingItem);
+    }
+
+    private void validateRequest(MenuItemRequest request) {
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Name cannot be empty");
+        }
+        if (request.getDescription() == null || request.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Description cannot be empty");
+        }
+        if (request.getPrice() == null || request.getPrice() <= 0) {
+            throw new IllegalArgumentException("Price must be positive");
+        }
     }
 }
