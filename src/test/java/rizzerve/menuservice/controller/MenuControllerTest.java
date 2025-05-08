@@ -164,6 +164,21 @@ public class MenuControllerTest {
     }
 
     @Test
+    void testUpdateMenuItemWithInvalidData() throws Exception {
+        UUID id = sampleFood.getId();
+        
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("");  // Empty name
+        updateRequest.setDescription("Updated description");
+        updateRequest.setPrice(30000.0);
+        
+        mockMvc.perform(put("/menu/{id}", id.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void testGetNonExistentMenuItemById() throws Exception {
         UUID nonExistentId = UUID.randomUUID();
         Mockito.when(menuService.getMenuItemById(nonExistentId)).thenReturn(null);
@@ -190,6 +205,48 @@ public class MenuControllerTest {
         
         mockMvc.perform(post("/menu")
                 .param("menuType", "INVALID_TYPE")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testCreateMenuItemWithEmptyName() throws Exception {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("");  // Empty name
+        request.setDescription("Test description");
+        request.setPrice(15000.0);
+        
+        mockMvc.perform(post("/menu")
+                .param("menuType", "FOOD")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testCreateMenuItemWithEmptyDescription() throws Exception {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("Test Item");
+        request.setDescription("");  // Empty description
+        request.setPrice(15000.0);
+        
+        mockMvc.perform(post("/menu")
+                .param("menuType", "FOOD")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void testCreateMenuItemWithNegativePrice() throws Exception {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("Test Item");
+        request.setDescription("Test description");
+        request.setPrice(-100.0);  // Negative price
+        
+        mockMvc.perform(post("/menu")
+                .param("menuType", "FOOD")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
