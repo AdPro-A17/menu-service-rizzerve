@@ -19,10 +19,17 @@ jobs:
           ssh-keyscan ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to EC2
+        env:
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGDATABASE: ${{ secrets.DB_NAME }}
+          PGUSER: ${{ secrets.DB_USER }}
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          DUCKDNS_DOMAIN: ${{ secrets.DUCKDNS_DOMAIN }}
+          DUCKDNS_TOKEN: ${{ secrets.DUCKDNS_TOKEN }}
         run: |
-          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << EOF
             # Step 1: Refresh DuckDNS IP
-            curl -k "https://www.duckdns.org/update?domains=${{ secrets.DUCKDNS_DOMAIN }}&token=${{ secrets.DUCKDNS_TOKEN }}&ip="
+            curl -k "https://www.duckdns.org/update?domains=${DUCKDNS_DOMAIN}&token=${DUCKDNS_TOKEN}&ip="
 
             # Step 2: Deploy latest staging code
             cd ~/menu-service-rizzerve
@@ -31,5 +38,11 @@ jobs:
             docker stop menu-service || true
             docker rm menu-service || true
             docker build -t menu-service-rizzerve:latest .
-            docker run -d --name menu-service -p 8080:8080 menu-service-rizzerve:latest
+            docker run -d --name menu-service \
+              -p 8080:8080 \
+              -e PGHOST='${PGHOST}' \
+              -e PGDATABASE='${PGDATABASE}' \
+              -e PGUSER='${PGUSER}' \
+              -e PGPASSWORD='${PGPASSWORD}' \
+              menu-service-rizzerve:latest
           EOF
