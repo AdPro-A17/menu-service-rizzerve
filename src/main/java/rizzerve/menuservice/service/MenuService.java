@@ -1,6 +1,7 @@
 package rizzerve.menuservice.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.factory.MenuItemFactory;
@@ -22,6 +23,7 @@ public class MenuService {
         this.menuRepository = menuRepository;
     }
 
+    @Transactional
     public MenuItem addMenuItem(MenuType type, MenuItemRequest request) {
         validateRequest(request);
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(type);
@@ -34,16 +36,23 @@ public class MenuService {
     }
 
     public MenuItem getMenuItemById(UUID id) {
-        return menuRepository.findById(id);
+        return menuRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public MenuItem deleteMenuItem(UUID id) {
-        return menuRepository.delete(id);
+        MenuItem item = menuRepository.findById(id).orElse(null);
+        if (item == null) {
+            return null;
+        }
+        menuRepository.deleteById(id);
+        return item;
     }
 
+    @Transactional
     public MenuItem updateMenuItem(UUID id, MenuItemRequest request) {
         validateRequest(request);
-        MenuItem existingItem = menuRepository.findById(id);
+        MenuItem existingItem = menuRepository.findById(id).orElse(null);
         if (existingItem == null) {
             return null;
         }

@@ -3,19 +3,21 @@ package rizzerve.menuservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
+import rizzerve.menuservice.exception.GlobalExceptionHandler;
 import rizzerve.menuservice.model.Food;
 import rizzerve.menuservice.service.MenuService;
 
@@ -23,13 +25,33 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith({SpringExtension.class, MockitoExtension.class})
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest
+@EnableWebMvc
+@ActiveProfiles("test")
+@ContextConfiguration(classes = {
+    MenuController.class,
+    GlobalExceptionHandler.class,
+    ValidationAutoConfiguration.class,
+    MenuControllerTest.TestConfig.class
+})
 public class MenuControllerTest {
+
+    @Configuration
+    static class TestConfig {
+        @Bean
+        public MenuService menuService() {
+            return Mockito.mock(MenuService.class);
+        }
+        
+        @Bean
+        public LocalValidatorFactoryBean validator() {
+            return new LocalValidatorFactoryBean();
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,14 +63,6 @@ public class MenuControllerTest {
     private ObjectMapper objectMapper;
 
     private Food sampleFood;
-
-    @TestConfiguration
-    static class MenuControllerTestConfig {
-        @Bean
-        public MenuService menuService() {
-            return Mockito.mock(MenuService.class);
-        }
-    }
 
     @BeforeEach
     void setUp() {
@@ -72,7 +86,7 @@ public class MenuControllerTest {
         request.setPrice(25000.0);
         request.setIsSpicy(true);
 
-        Mockito.when(menuService.addMenuItem(Mockito.eq(MenuType.FOOD), any(MenuItemRequest.class)))
+        Mockito.when(menuService.addMenuItem(eq(MenuType.FOOD), any(MenuItemRequest.class)))
                 .thenReturn(sampleFood);
 
         mockMvc.perform(post("/menu")

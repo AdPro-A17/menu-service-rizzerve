@@ -1,26 +1,33 @@
 package rizzerve.menuservice.repository;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.factory.MenuItemFactory;
 import rizzerve.menuservice.factory.MenuItemFactoryCreator;
 import rizzerve.menuservice.model.MenuItem;
 import rizzerve.menuservice.dto.MenuItemRequest;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(SpringExtension.class)
+@DataJpaTest
+@ActiveProfiles("test")
 public class MenuRepositoryTest {
 
-    private MenuRepository menuRepository;
+    @Autowired
+    private TestEntityManager entityManager;
 
-    @BeforeEach
-    void setUp() {
-        this.menuRepository = new MenuRepository();
-    }
+    @Autowired
+    private MenuRepository menuRepository;
 
     @Test
     void testSaveMenuItem() {
@@ -35,38 +42,28 @@ public class MenuRepositoryTest {
         MenuItem item1 = buildSampleItem("Ayam Bakar");
         MenuItem item2 = buildSampleItem("Es Teh");
 
-        menuRepository.save(item1);
-        menuRepository.save(item2);
+        entityManager.persist(item1);
+        entityManager.persist(item2);
+        entityManager.flush();
 
-        List<MenuItem> all = menuRepository.findAll();
-        assertEquals(2, all.size());
+        assertEquals(2, menuRepository.findAll().size());
     }
 
     @Test
     void testFindByIdReturnsCorrectItem() {
         MenuItem item = buildSampleItem("Bakso");
-        menuRepository.save(item);
+        entityManager.persist(item);
+        entityManager.flush();
 
-        MenuItem result = menuRepository.findById(item.getId());
-        assertNotNull(result);
-        assertEquals("Bakso", result.getName());
+        Optional<MenuItem> result = menuRepository.findById(item.getId());
+        assertTrue(result.isPresent());
+        assertEquals("Bakso", result.get().getName());
     }
 
     @Test
-    void testFindByIdReturnsNullForUnknownId() {
-        MenuItem result = menuRepository.findById(UUID.randomUUID());
-        assertNull(result);
-    }
-
-    @Test
-    void testDeleteRemovesItemById() {
-        MenuItem item = buildSampleItem("Sate Padang");
-        menuRepository.save(item);
-
-        MenuItem removed = menuRepository.delete(item.getId());
-        assertEquals(item.getId(), removed.getId());
-
-        assertNull(menuRepository.findById(item.getId()));
+    void testFindByIdReturnsEmptyForUnknownId() {
+        Optional<MenuItem> result = menuRepository.findById(UUID.randomUUID());
+        assertTrue(result.isEmpty());
     }
 
     private MenuItem buildSampleItem(String name) {
