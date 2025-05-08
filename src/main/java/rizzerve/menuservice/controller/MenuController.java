@@ -53,4 +53,16 @@ public class MenuController {
         }
         return ResponseEntity.ok(item);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MenuItem> updateMenuItem(
+            @PathVariable UUID id,
+            @RequestBody MenuItemRequest request
+    ) {
+        MenuItem item = menuService.updateMenuItem(id, request);
+        if (item == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(item);
+    }
 }

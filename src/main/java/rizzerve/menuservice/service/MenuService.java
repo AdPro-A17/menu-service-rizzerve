@@ -5,6 +5,8 @@ import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.factory.MenuItemFactory;
 import rizzerve.menuservice.factory.MenuItemFactoryCreator;
+import rizzerve.menuservice.model.Drink;
+import rizzerve.menuservice.model.Food;
 import rizzerve.menuservice.model.MenuItem;
 import rizzerve.menuservice.repository.MenuRepository;
 
@@ -36,5 +38,24 @@ public class MenuService {
 
     public MenuItem deleteMenuItem(UUID id) {
         return menuRepository.delete(id);
+    }
+
+    public MenuItem updateMenuItem(UUID id, MenuItemRequest request) {
+        MenuItem existingItem = menuRepository.findById(id);
+        if (existingItem == null) {
+            return null;
+        }
+        
+        existingItem.setName(request.getName());
+        existingItem.setDescription(request.getDescription());
+        existingItem.setPrice(request.getPrice());
+        
+        if (existingItem instanceof Food && request.getIsSpicy() != null) {
+            ((Food) existingItem).setIsSpicy(request.getIsSpicy());
+        } else if (existingItem instanceof Drink && request.getIsCold() != null) {
+            ((Drink) existingItem).setIsCold(request.getIsCold());
+        }
+        
+        return menuRepository.save(existingItem);
     }
 }
