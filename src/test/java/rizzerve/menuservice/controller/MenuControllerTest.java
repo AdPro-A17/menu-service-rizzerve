@@ -3,7 +3,10 @@ package rizzerve.menuservice.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.model.Food;
@@ -11,9 +14,11 @@ import rizzerve.menuservice.service.MenuService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,22 +27,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
 @WebMvcTest(MenuController.class)
 public class MenuControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @Mock
     private MenuService menuService;
 
     @Autowired
     private ObjectMapper objectMapper;
+    
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     private Food sampleFood;
 
     @BeforeEach
     void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        
         sampleFood = new Food();
         sampleFood.setId(UUID.randomUUID());
         sampleFood.setName("Burger");
