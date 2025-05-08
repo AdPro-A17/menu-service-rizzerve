@@ -96,4 +96,53 @@ public class MenuControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Burger"));
     }
+
+    @Test
+    void testUpdateMenuItem() throws Exception {
+        UUID id = sampleFood.getId();
+        
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("Updated Burger");
+        updateRequest.setDescription("Updated description");
+        updateRequest.setPrice(30000.0);
+        updateRequest.setIsSpicy(false);
+        
+        Food updatedFood = new Food();
+        updatedFood.setId(id);
+        updatedFood.setName("Updated Burger");
+        updatedFood.setDescription("Updated description");
+        updatedFood.setPrice(30000.0);
+        updatedFood.setIsSpicy(false);
+        updatedFood.setAvailable(true);
+        
+        Mockito.when(menuService.updateMenuItem(Mockito.eq(id), any(MenuItemRequest.class)))
+                .thenReturn(updatedFood);
+        
+        mockMvc.perform(put("/menu/{id}", id.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Burger"))
+                .andExpect(jsonPath("$.description").value("Updated description"))
+                .andExpect(jsonPath("$.price").value(30000.0))
+                .andExpect(jsonPath("$.isSpicy").value(false));
+    }
+
+    @Test
+    void testUpdateNonExistentMenuItem() throws Exception {
+        UUID nonExistentId = UUID.randomUUID();
+        
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("Updated Item");
+        updateRequest.setDescription("Updated description");
+        updateRequest.setPrice(15000.0);
+        
+        Mockito.when(menuService.updateMenuItem(Mockito.eq(nonExistentId), any(MenuItemRequest.class)))
+                .thenReturn(null);
+        
+        mockMvc.perform(put("/menu/{id}", nonExistentId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isNotFound());
+    }
 }

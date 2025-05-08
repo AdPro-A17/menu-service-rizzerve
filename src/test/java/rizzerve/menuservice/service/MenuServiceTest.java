@@ -73,4 +73,50 @@ public class MenuServiceTest {
         MenuItem result = menuService.getMenuItemById(fakeId);
         assertNull(result);
     }
+
+    @Test
+    void testUpdateMenuItem() {
+        // First create an item
+        MenuItemRequest createRequest = new MenuItemRequest();
+        createRequest.setName("Original Item");
+        createRequest.setDescription("Original description");
+        createRequest.setPrice(10000.0);
+        createRequest.setIsSpicy(true);
+        
+        MenuItem createdItem = menuService.addMenuItem(MenuType.FOOD, createRequest);
+        UUID itemId = createdItem.getId();
+        
+        // Create update request with new values
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("Updated Item");
+        updateRequest.setDescription("Updated description");
+        updateRequest.setPrice(15000.0);
+        updateRequest.setIsSpicy(false);
+        
+        // Update the item
+        MenuItem updatedItem = menuService.updateMenuItem(itemId, updateRequest);
+        
+        // Verify the item was updated
+        assertNotNull(updatedItem);
+        assertEquals(itemId, updatedItem.getId()); // ID should remain the same
+        assertEquals("Updated Item", updatedItem.getName());
+        assertEquals("Updated description", updatedItem.getDescription());
+        assertEquals(15000.0, updatedItem.getPrice());
+        assertEquals(false, ((Food)updatedItem).getIsSpicy());
+        assertTrue(updatedItem.getAvailable()); // Availability should not change
+    }
+
+    @Test
+    void testUpdateNonExistentMenuItemReturnsNull() {
+        UUID nonExistentId = UUID.randomUUID();
+        
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("Updated Item");
+        updateRequest.setDescription("Updated description");
+        updateRequest.setPrice(15000.0);
+        
+        MenuItem result = menuService.updateMenuItem(nonExistentId, updateRequest);
+        
+        assertNull(result);
+    }
 }
