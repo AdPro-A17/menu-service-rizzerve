@@ -7,7 +7,6 @@ import org.mockito.Mockito;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.model.Food;
-import rizzerve.menuservice.model.MenuItem;
 import rizzerve.menuservice.service.MenuService;
 
 import org.springframework.beans.factory.annotation.Autowired;
