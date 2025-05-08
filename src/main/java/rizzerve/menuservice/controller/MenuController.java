@@ -8,6 +8,8 @@ import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.model.MenuItem;
 import rizzerve.menuservice.service.MenuService;
 
+import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +26,7 @@ public class MenuController {
     @PostMapping
     public ResponseEntity<MenuItem> createMenuItem(
             @RequestParam MenuType menuType,
-            @RequestBody MenuItemRequest request
+            @Valid @RequestBody MenuItemRequest request
     ) {
         MenuItem item = menuService.addMenuItem(menuType, request);
         return new ResponseEntity<>(item, HttpStatus.CREATED);
@@ -57,7 +59,7 @@ public class MenuController {
     @PutMapping("/{id}")
     public ResponseEntity<MenuItem> updateMenuItem(
             @PathVariable UUID id,
-            @RequestBody MenuItemRequest request
+            @Valid @RequestBody MenuItemRequest request
     ) {
         MenuItem item = menuService.updateMenuItem(id, request);
         if (item == null) {
