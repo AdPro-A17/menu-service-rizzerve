@@ -76,7 +76,6 @@ public class MenuServiceTest {
 
     @Test
     void testUpdateMenuItem() {
-        // First create an item
         MenuItemRequest createRequest = new MenuItemRequest();
         createRequest.setName("Original Item");
         createRequest.setDescription("Original description");
@@ -86,24 +85,21 @@ public class MenuServiceTest {
         MenuItem createdItem = menuService.addMenuItem(MenuType.FOOD, createRequest);
         UUID itemId = createdItem.getId();
         
-        // Create update request with new values
         MenuItemRequest updateRequest = new MenuItemRequest();
         updateRequest.setName("Updated Item");
         updateRequest.setDescription("Updated description");
         updateRequest.setPrice(15000.0);
         updateRequest.setIsSpicy(false);
         
-        // Update the item
         MenuItem updatedItem = menuService.updateMenuItem(itemId, updateRequest);
         
-        // Verify the item was updated
         assertNotNull(updatedItem);
-        assertEquals(itemId, updatedItem.getId()); // ID should remain the same
+        assertEquals(itemId, updatedItem.getId());
         assertEquals("Updated Item", updatedItem.getName());
         assertEquals("Updated description", updatedItem.getDescription());
         assertEquals(15000.0, updatedItem.getPrice());
         assertEquals(false, ((Food)updatedItem).getIsSpicy());
-        assertTrue(updatedItem.getAvailable()); // Availability should not change
+        assertTrue(updatedItem.getAvailable());
     }
 
     @Test
