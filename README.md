@@ -69,3 +69,9 @@ Kami memilih teknik risk storming karena cara ini membuat semua anggota tim bica
 Untuk resiko “Satu Database untuk Banyak Layanan”, kami lihat bahwa memakai satu database memang cepat saat mulai, tapi bisa jadi titik gagal tunggal. Jika satu layanan mengubah skema, layanan lain bisa rusak. Saat trafik tinggi, database itu bisa kewalahan. Solusinya adalah pisahkan database untuk tiap layanan. Dengan begitu, perubahan skema di satu layanan tidak mengganggu yang lain, kapasitas bisa ditambah sesuai kebutuhan, dan sistem lebih mudah dipulihkan jika terjadi masalah.
 
 Pada resiko “Bentrokan Saat Booking Meja”, banyak pengguna bisa pesan meja bersamaan dan menyebabkan double booking. Kami sepakat menggunakan optimistic locking atau kunci terdistribusi lewat Redis. Cara ini hanya mengunci data yang sedang diproses, bukan seluruh tabel. Jika ada dua permintaan bentrok, satu akan gagal dan dicoba ulang. Dengan begitu, meja tidak bisa dipakai dua kali dan pengalaman pengguna tetap mulus.
+
+## Individual 
+- Component Diagram - Menu Service (Rakabima Ghaniendra Rusdianto - 2306228472)
+![Component Diagram](images/rizzerve-a17-menu-service-component-diagram.png)
+- Code Diagram - Menu Service (Rakabima Ghaniendra Rusdianto - 2306228472)
+![Code Diagram](images/rizzerve-a17-menu-service-code-diagram.png)
