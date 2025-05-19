@@ -5,14 +5,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -25,9 +23,7 @@ import org.springframework.web.context.WebApplicationContext;
 import rizzerve.menuservice.config.SecurityConfig;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
-import rizzerve.menuservice.exception.GlobalExceptionHandler;
 import rizzerve.menuservice.model.Food;
-import rizzerve.menuservice.security.JwtAuthFilter;
 import rizzerve.menuservice.security.JwtService;
 import rizzerve.menuservice.service.MenuService;
 
@@ -53,9 +49,6 @@ public class MenuControllerTest {
 
     @MockBean
     private MenuService menuService;
-    
-    @MockBean
-    private JwtAuthFilter jwtAuthFilter;
     
     @MockBean
     private JwtService jwtService;

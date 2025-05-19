@@ -33,6 +33,7 @@ public class JwtAuthFilterTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        // Directly instantiate the filter since it's no longer a Spring bean
         jwtAuthFilter = new JwtAuthFilter(jwtService, userDetailsService);
         SecurityContextHolder.clearContext();
     }

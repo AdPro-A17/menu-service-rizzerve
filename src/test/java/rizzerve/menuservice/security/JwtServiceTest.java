@@ -28,29 +28,23 @@ public class JwtServiceTest {
 
     @Test
     void testExtractUsername() {
-        // Arrange
         String username = "admin";
         String token = generateToken(username);
         
-        // Act
         String extractedUsername = jwtService.extractUsername(token);
         
-        // Assert
         assertEquals(username, extractedUsername);
     }
 
     @Test
     void testExtractRoles() {
-        // Arrange
         String username = "admin";
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", List.of("ROLE_ADMIN"));
         String token = generateTokenWithClaims(username, claims);
         
-        // Act
         List<String> roles = jwtService.extractRoles(token);
         
-        // Assert
         assertNotNull(roles);
         assertEquals(1, roles.size());
         assertEquals("ROLE_ADMIN", roles.get(0));
@@ -58,7 +52,6 @@ public class JwtServiceTest {
 
     @Test
     void testValidateToken_withValidToken() {
-        // Arrange
         String username = "admin";
         String token = generateToken(username);
         UserDetails userDetails = User.withUsername(username)
@@ -66,63 +59,51 @@ public class JwtServiceTest {
             .roles("ADMIN")
             .build();
         
-        // Act
         boolean isValid = jwtService.validateToken(token, userDetails);
         
-        // Assert
         assertTrue(isValid);
     }
 
     @Test
     void testValidateToken_withInvalidUsername() {
-        // Arrange
         String token = generateToken("admin");
         UserDetails userDetails = User.withUsername("wronguser")
             .password("password")
             .roles("ADMIN")
             .build();
         
-        // Act
         boolean isValid = jwtService.validateToken(token, userDetails);
         
-        // Assert
         assertFalse(isValid);
     }
 
     @Test
     void testValidateToken_withExpiredToken() {
-        // Arrange
         String token = generateExpiredToken("admin");
         UserDetails userDetails = User.withUsername("admin")
             .password("password")
             .roles("ADMIN")
             .build();
         
-        // Act
         boolean isValid = jwtService.validateToken(token, userDetails);
         
-        // Assert
         assertFalse(isValid);
     }
 
     @Test
     void testExtractAllClaims() {
-        // Arrange
         String username = "admin";
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("customClaim", "value");
         String token = generateTokenWithClaims(username, extraClaims);
         
-        // Act
         Claims claims = jwtService.extractAllClaims(token);
         
-        // Assert
         assertNotNull(claims);
         assertEquals(username, claims.getSubject());
         assertEquals("value", claims.get("customClaim"));
     }
 
-    // Helper methods to generate tokens for testing
     private String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
