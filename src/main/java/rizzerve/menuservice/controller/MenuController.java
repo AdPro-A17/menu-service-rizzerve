@@ -2,6 +2,7 @@ package rizzerve.menuservice.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
@@ -24,6 +25,7 @@ public class MenuController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MenuItem> createMenuItem(
             @RequestParam MenuType menuType,
             @Valid @RequestBody MenuItemRequest request
@@ -48,6 +50,7 @@ public class MenuController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MenuItem> deleteMenuItem(@PathVariable UUID id) {
         MenuItem item = menuService.deleteMenuItem(id);
         if (item == null) {
@@ -57,6 +60,7 @@ public class MenuController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MenuItem> updateMenuItem(
             @PathVariable UUID id,
             @Valid @RequestBody MenuItemRequest request
