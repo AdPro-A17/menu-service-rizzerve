@@ -15,6 +15,7 @@ public class FoodFactory implements MenuItemFactory {
         food.setDescription(request.getDescription());
         food.setPrice(request.getPrice());
         food.setIsSpicy(request.getIsSpicy());
+        food.setImage(request.getImage());
         food.setAvailable(true);
         return food;
     }

@@ -20,7 +20,7 @@ public class AuthService {
     
     private final RestTemplate restTemplate = new RestTemplate();
     
-    @Value("${auth.service.url:http://localhost:8081}")
+    @Value("${auth.service.url:http://localhost:8080}")
     private String authServiceUrl;
 
     /**

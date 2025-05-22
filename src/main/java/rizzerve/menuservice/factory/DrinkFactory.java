@@ -15,6 +15,7 @@ public class DrinkFactory implements MenuItemFactory {
         drink.setDescription(request.getDescription());
         drink.setPrice(request.getPrice());
         drink.setIsCold(request.getIsCold());
+        drink.setImage(request.getImage());
         drink.setAvailable(true);
         return drink;
     }

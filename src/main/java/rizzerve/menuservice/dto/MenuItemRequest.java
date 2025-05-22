@@ -21,4 +21,6 @@ public class MenuItemRequest {
     private Boolean isSpicy;
     
     private Boolean isCold;
+    
+    private String image;
 }

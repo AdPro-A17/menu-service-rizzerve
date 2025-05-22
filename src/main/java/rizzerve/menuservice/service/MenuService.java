@@ -60,6 +60,7 @@ public class MenuService {
         existingItem.setName(request.getName());
         existingItem.setDescription(request.getDescription());
         existingItem.setPrice(request.getPrice());
+        existingItem.setImage(request.getImage());
         
         if (existingItem instanceof Food && request.getIsSpicy() != null) {
             ((Food) existingItem).setIsSpicy(request.getIsSpicy());

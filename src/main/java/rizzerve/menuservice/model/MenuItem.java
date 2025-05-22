@@ -28,4 +28,7 @@ public abstract class MenuItem {
     
     @Column(nullable = false)
     private Boolean available;
+    
+    @Column
+    private String image;
 }
