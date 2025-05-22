@@ -41,6 +41,7 @@ public class MenuServiceTest {
         request.setDescription("Fried noodle");
         request.setPrice(25000.0);
         request.setIsSpicy(true);
+        request.setImage("https://example.com/mie-goreng.jpg");
 
         // Mock repository behavior
         Mockito.when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation -> {
@@ -53,6 +54,7 @@ public class MenuServiceTest {
         assertNotNull(savedItem.getId());
         assertEquals("Mie Goreng", savedItem.getName());
         assertEquals(25000.0, savedItem.getPrice());
+        assertEquals("https://example.com/mie-goreng.jpg", savedItem.getImage());
         assertInstanceOf(Food.class, savedItem);
     }
 
@@ -78,12 +80,14 @@ public class MenuServiceTest {
         sampleFood.setDescription("Fried rice");
         sampleFood.setPrice(27000.0);
         sampleFood.setIsSpicy(true);
+        sampleFood.setImage("https://example.com/nasi-goreng.jpg");
         sampleFood.setAvailable(true);
 
         when(menuRepository.findAll()).thenReturn(List.of(sampleFood));
 
         List<MenuItem> items = menuService.getAllMenuItems();
         assertEquals(1, items.size());
+        assertEquals("https://example.com/nasi-goreng.jpg", items.get(0).getImage());
     }
 
     @Test
@@ -123,6 +127,7 @@ public class MenuServiceTest {
         existingFood.setDescription("Original description");
         existingFood.setPrice(10000.0);
         existingFood.setIsSpicy(true);
+        existingFood.setImage("https://example.com/original.jpg");
         existingFood.setAvailable(true);
         
         // Create updated request
@@ -131,6 +136,7 @@ public class MenuServiceTest {
         updateRequest.setDescription("Updated description");
         updateRequest.setPrice(15000.0);
         updateRequest.setIsSpicy(false);
+        updateRequest.setImage("https://example.com/updated.jpg");
         
         // Mock repository behavior
         when(menuRepository.findById(itemId)).thenReturn(Optional.of(existingFood));
@@ -143,6 +149,7 @@ public class MenuServiceTest {
         assertEquals("Updated Item", updatedItem.getName());
         assertEquals("Updated description", updatedItem.getDescription());
         assertEquals(15000.0, updatedItem.getPrice());
+        assertEquals("https://example.com/updated.jpg", updatedItem.getImage());
         assertEquals(false, ((Food)updatedItem).getIsSpicy());
         assertTrue(updatedItem.getAvailable());
     }
@@ -200,6 +207,7 @@ public class MenuServiceTest {
         request.setDescription("Fresh orange juice");
         request.setPrice(15000.0);
         request.setIsCold(true);
+        request.setImage("https://example.com/orange-juice.jpg");
 
         // Mock the save method to return a drink
         Mockito.when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation -> {
@@ -211,6 +219,7 @@ public class MenuServiceTest {
                 drink.setDescription(request.getDescription());
                 drink.setPrice(request.getPrice());
                 drink.setIsCold(request.getIsCold());
+                drink.setImage(request.getImage());
                 drink.setAvailable(true);
             }
             return item;
@@ -221,6 +230,7 @@ public class MenuServiceTest {
         assertNotNull(savedItem.getId());
         assertEquals("Orange Juice", savedItem.getName());
         assertEquals(15000.0, savedItem.getPrice());
+        assertEquals("https://example.com/orange-juice.jpg", savedItem.getImage());
         assertInstanceOf(Drink.class, savedItem);
         assertTrue(((Drink)savedItem).getIsCold());
     }

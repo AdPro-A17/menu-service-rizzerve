@@ -72,8 +72,30 @@ public class MenuRepositoryTest {
         request.setDescription("Test Description");
         request.setPrice(20000.0);
         request.setIsSpicy(true);
+        request.setImage("https://example.com/" + name.toLowerCase().replace(" ", "-") + ".jpg");
 
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(MenuType.FOOD);
         return factory.createMenuItem(request);
+    }
+
+    @Test
+    void testSaveAndRetrieveWithImageField() {
+        // Create item with image URL
+        Food foodItem = new Food();
+        foodItem.setId(UUID.randomUUID());
+        foodItem.setName("Pizza");
+        foodItem.setDescription("Delicious pizza");
+        foodItem.setPrice(25000.0);
+        foodItem.setIsSpicy(false);
+        foodItem.setAvailable(true);
+        foodItem.setImage("https://example.com/pizza.jpg");
+
+        // Save to DB
+        MenuItem savedItem = menuRepository.save(foodItem);
+
+        // Retrieve and verify
+        MenuItem retrievedItem = menuRepository.findById(savedItem.getId()).orElse(null);
+        assertNotNull(retrievedItem);
+        assertEquals("https://example.com/pizza.jpg", retrievedItem.getImage());
     }
 }

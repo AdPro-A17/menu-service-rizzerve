@@ -18,6 +18,7 @@ public class MenuItemFactoryTest {
         request.setDescription("Hot grilled chicken");
         request.setPrice(35000.0);
         request.setIsSpicy(true);
+        request.setImage("https://example.com/spicy-chicken.jpg");
 
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(MenuType.FOOD);
         MenuItem item = factory.createMenuItem(request);
@@ -31,6 +32,7 @@ public class MenuItemFactoryTest {
         assertEquals("Hot grilled chicken", food.getDescription());
         assertEquals(35000.0, food.getPrice());
         assertTrue(food.getIsSpicy());
+        assertEquals("https://example.com/spicy-chicken.jpg", food.getImage());
         assertTrue(food.getAvailable());
     }
 
@@ -41,6 +43,7 @@ public class MenuItemFactoryTest {
         request.setDescription("Cold and refreshing");
         request.setPrice(18000.0);
         request.setIsCold(true);
+        request.setImage("https://example.com/iced-lemon-tea.jpg");
 
         MenuItemFactory factory = MenuItemFactoryCreator.getFactory(MenuType.DRINK);
         MenuItem item = factory.createMenuItem(request);
@@ -54,6 +57,7 @@ public class MenuItemFactoryTest {
         assertEquals("Cold and refreshing", drink.getDescription());
         assertEquals(18000.0, drink.getPrice());
         assertTrue(drink.getIsCold());
+        assertEquals("https://example.com/iced-lemon-tea.jpg", drink.getImage());
         assertTrue(drink.getAvailable());
     }
 
