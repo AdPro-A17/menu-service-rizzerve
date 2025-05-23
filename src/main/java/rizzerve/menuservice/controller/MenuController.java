@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/menu")
@@ -70,5 +71,46 @@ public class MenuController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(item);
+    }
+
+    /* Asynchronous API endpoints */
+
+    @GetMapping("/async")
+    public CompletableFuture<ResponseEntity<List<MenuItem>>> getAllMenuItemsAsync() {
+        return menuService.getAllMenuItemsAsync()
+                .thenApply(ResponseEntity::ok);
+    }
+
+    @GetMapping("/async/{id}")
+    public CompletableFuture<ResponseEntity<MenuItem>> getMenuItemByIdAsync(@PathVariable UUID id) {
+        return menuService.getMenuItemByIdAsync(id)
+                .thenApply(item -> item != null ? ResponseEntity.ok(item) : ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/async")
+    @PreAuthorize("hasRole('ADMIN')")
+    public CompletableFuture<ResponseEntity<MenuItem>> createMenuItemAsync(
+            @RequestParam MenuType menuType,
+            @Valid @RequestBody MenuItemRequest request
+    ) {
+        return menuService.addMenuItemAsync(menuType, request)
+                .thenApply(item -> new ResponseEntity<>(item, HttpStatus.CREATED));
+    }
+
+    @PutMapping("/async/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public CompletableFuture<ResponseEntity<MenuItem>> updateMenuItemAsync(
+            @PathVariable UUID id,
+            @Valid @RequestBody MenuItemRequest request
+    ) {
+        return menuService.updateMenuItemAsync(id, request)
+                .thenApply(item -> item != null ? ResponseEntity.ok(item) : ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/async/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public CompletableFuture<ResponseEntity<MenuItem>> deleteMenuItemAsync(@PathVariable UUID id) {
+        return menuService.deleteMenuItemAsync(id)
+                .thenApply(item -> item != null ? ResponseEntity.ok(item) : ResponseEntity.notFound().build());
     }
 }
