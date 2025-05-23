@@ -18,6 +18,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
@@ -28,10 +29,13 @@ import rizzerve.menuservice.service.MenuService;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -362,5 +366,132 @@ public class MenuControllerTest {
 
         mockMvc.perform(delete("/menu/{id}", nonExistentId.toString()))
                 .andExpect(status().isNotFound());
+    }
+    
+    // Async endpoint tests
+
+    @Test
+    public void testGetAllMenuItemsAsync() throws Exception {
+        Mockito.when(menuService.getAllMenuItemsAsync())
+                .thenReturn(CompletableFuture.completedFuture(List.of(sampleFood)));
+
+        // First request - start async processing
+        MvcResult mvcResult = mockMvc.perform(get("/menu/async"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // Complete processing and verify response
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Burger"));
+    }
+
+    @Test
+    public void testGetMenuItemByIdAsync() throws Exception {
+        UUID id = sampleFood.getId();
+        Mockito.when(menuService.getMenuItemByIdAsync(id))
+                .thenReturn(CompletableFuture.completedFuture(sampleFood));
+
+        // First request - start async processing
+        MvcResult mvcResult = mockMvc.perform(get("/menu/async/{id}", id.toString()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // Complete processing and verify response
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Burger"));
+    }
+
+    @Test
+    public void testGetNonExistentMenuItemByIdAsync() throws Exception {
+        UUID nonExistentId = UUID.randomUUID();
+        Mockito.when(menuService.getMenuItemByIdAsync(nonExistentId))
+                .thenReturn(CompletableFuture.completedFuture(null));
+
+        // First request - start async processing
+        MvcResult mvcResult = mockMvc.perform(get("/menu/async/{id}", nonExistentId.toString()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // Complete processing and verify response
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void testCreateMenuItemAsync() throws Exception {
+        Mockito.when(menuService.addMenuItemAsync(eq(MenuType.FOOD), any(MenuItemRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(sampleFood));
+
+        // First request - start async processing
+        MvcResult mvcResult = mockMvc.perform(post("/menu/async")
+                        .param("menuType", "FOOD")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // Complete processing and verify response
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value("Burger"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void testUpdateMenuItemAsync() throws Exception {
+        UUID id = sampleFood.getId();
+
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("Updated Burger");
+        updateRequest.setDescription("Updated description");
+        updateRequest.setPrice(30000.0);
+        updateRequest.setIsSpicy(false);
+
+        Food updatedFood = new Food();
+        updatedFood.setId(id);
+        updatedFood.setName("Updated Burger");
+        updatedFood.setDescription("Updated description");
+        updatedFood.setPrice(30000.0);
+        updatedFood.setIsSpicy(false);
+        updatedFood.setAvailable(true);
+
+        Mockito.when(menuService.updateMenuItemAsync(eq(id), any(MenuItemRequest.class)))
+                .thenReturn(CompletableFuture.completedFuture(updatedFood));
+
+        // First request - start async processing
+        MvcResult mvcResult = mockMvc.perform(put("/menu/async/{id}", id.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // Complete processing and verify response
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Burger"))
+                .andExpect(jsonPath("$.description").value("Updated description"))
+                .andExpect(jsonPath("$.price").value(30000.0))
+                .andExpect(jsonPath("$.isSpicy").value(false));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    public void testDeleteMenuItemAsync() throws Exception {
+        UUID id = sampleFood.getId();
+        Mockito.when(menuService.deleteMenuItemAsync(id))
+                .thenReturn(CompletableFuture.completedFuture(sampleFood));
+
+        // First request - start async processing
+        MvcResult mvcResult = mockMvc.perform(delete("/menu/async/{id}", id.toString()))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        // Complete processing and verify response
+        mockMvc.perform(asyncDispatch(mvcResult))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Burger"));
     }
 }

@@ -16,6 +16,10 @@ import rizzerve.menuservice.repository.MenuRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -233,5 +237,155 @@ public class MenuServiceTest {
         assertEquals("https://example.com/orange-juice.jpg", savedItem.getImage());
         assertInstanceOf(Drink.class, savedItem);
         assertTrue(((Drink)savedItem).getIsCold());
+    }
+
+    @Test
+    void testGetAllMenuItemsAsync() throws ExecutionException, InterruptedException, TimeoutException {
+        Food sampleFood = new Food();
+        sampleFood.setId(UUID.randomUUID());
+        sampleFood.setName("Nasi Goreng");
+        sampleFood.setDescription("Fried rice");
+        sampleFood.setPrice(27000.0);
+        sampleFood.setIsSpicy(true);
+        sampleFood.setImage("https://example.com/nasi-goreng.jpg");
+        sampleFood.setAvailable(true);
+
+        when(menuRepository.findAll()).thenReturn(List.of(sampleFood));
+
+        CompletableFuture<List<MenuItem>> future = menuService.getAllMenuItemsAsync();
+        List<MenuItem> items = future.get(5, TimeUnit.SECONDS);
+        
+        assertEquals(1, items.size());
+        assertEquals("https://example.com/nasi-goreng.jpg", items.get(0).getImage());
+    }
+
+    @Test
+    void testGetMenuItemByIdAsync() throws ExecutionException, InterruptedException, TimeoutException {
+        UUID id = UUID.randomUUID();
+        Food sampleFood = new Food();
+        sampleFood.setId(id);
+        sampleFood.setName("Teh Manis");
+        sampleFood.setDescription("Sweet tea");
+        sampleFood.setPrice(7000.0);
+        sampleFood.setIsSpicy(false);
+        sampleFood.setAvailable(true);
+
+        when(menuRepository.findById(id)).thenReturn(Optional.of(sampleFood));
+
+        CompletableFuture<MenuItem> future = menuService.getMenuItemByIdAsync(id);
+        MenuItem result = future.get(5, TimeUnit.SECONDS);
+        
+        assertEquals(id, result.getId());
+    }
+
+    @Test
+    void testGetMenuItemByInvalidIdAsyncShouldReturnNull() throws ExecutionException, InterruptedException, TimeoutException {
+        UUID fakeId = UUID.randomUUID();
+        when(menuRepository.findById(fakeId)).thenReturn(Optional.empty());
+        
+        CompletableFuture<MenuItem> future = menuService.getMenuItemByIdAsync(fakeId);
+        MenuItem result = future.get(5, TimeUnit.SECONDS);
+        
+        assertNull(result);
+    }
+
+    @Test
+    void testAddMenuItemAsync() throws ExecutionException, InterruptedException, TimeoutException {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("Mie Goreng");
+        request.setDescription("Fried noodle");
+        request.setPrice(25000.0);
+        request.setIsSpicy(true);
+        request.setImage("https://example.com/mie-goreng.jpg");
+
+        // Mock repository behavior
+        Mockito.when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation -> {
+            MenuItem item = invocation.getArgument(0);
+            return item;
+        });
+
+        CompletableFuture<MenuItem> future = menuService.addMenuItemAsync(MenuType.FOOD, request);
+        MenuItem savedItem = future.get(5, TimeUnit.SECONDS);
+
+        assertNotNull(savedItem.getId());
+        assertEquals("Mie Goreng", savedItem.getName());
+        assertEquals(25000.0, savedItem.getPrice());
+        assertEquals("https://example.com/mie-goreng.jpg", savedItem.getImage());
+        assertInstanceOf(Food.class, savedItem);
+    }
+
+    @Test
+    void testUpdateMenuItemAsync() throws ExecutionException, InterruptedException, TimeoutException {
+        UUID itemId = UUID.randomUUID();
+        
+        // Create sample food item
+        Food existingFood = new Food();
+        existingFood.setId(itemId);
+        existingFood.setName("Original Item");
+        existingFood.setDescription("Original description");
+        existingFood.setPrice(10000.0);
+        existingFood.setIsSpicy(true);
+        existingFood.setImage("https://example.com/original.jpg");
+        existingFood.setAvailable(true);
+        
+        // Create updated request
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("Updated Item");
+        updateRequest.setDescription("Updated description");
+        updateRequest.setPrice(15000.0);
+        updateRequest.setIsSpicy(false);
+        updateRequest.setImage("https://example.com/updated.jpg");
+        
+        // Mock repository behavior
+        when(menuRepository.findById(itemId)).thenReturn(Optional.of(existingFood));
+        when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        
+        CompletableFuture<MenuItem> future = menuService.updateMenuItemAsync(itemId, updateRequest);
+        MenuItem updatedItem = future.get(5, TimeUnit.SECONDS);
+        
+        assertNotNull(updatedItem);
+        assertEquals(itemId, updatedItem.getId());
+        assertEquals("Updated Item", updatedItem.getName());
+        assertEquals("Updated description", updatedItem.getDescription());
+        assertEquals(15000.0, updatedItem.getPrice());
+        assertEquals("https://example.com/updated.jpg", updatedItem.getImage());
+        assertEquals(false, ((Food)updatedItem).getIsSpicy());
+        assertTrue(updatedItem.getAvailable());
+    }
+
+    @Test
+    void testDeleteMenuItemAsync() throws ExecutionException, InterruptedException, TimeoutException {
+        UUID itemId = UUID.randomUUID();
+        
+        Food foodItem = new Food();
+        foodItem.setId(itemId);
+        foodItem.setName("Deletable Item");
+        foodItem.setDescription("Will be deleted");
+        foodItem.setPrice(10000.0);
+        foodItem.setIsSpicy(true);
+        foodItem.setAvailable(true);
+        
+        when(menuRepository.findById(itemId)).thenReturn(Optional.of(foodItem));
+        
+        CompletableFuture<MenuItem> future = menuService.deleteMenuItemAsync(itemId);
+        MenuItem deletedItem = future.get(5, TimeUnit.SECONDS);
+        
+        assertNotNull(deletedItem);
+        assertEquals(itemId, deletedItem.getId());
+        assertEquals("Deletable Item", deletedItem.getName());
+    }
+    
+    @Test
+    void testAddMenuItemAsyncWithEmptyNameShouldThrow() {
+        MenuItemRequest request = new MenuItemRequest();
+        request.setName("");
+        request.setDescription("Test description");
+        request.setPrice(10000.0);
+        
+        CompletableFuture<MenuItem> future = menuService.addMenuItemAsync(MenuType.FOOD, request);
+        
+        ExecutionException exception = assertThrows(ExecutionException.class, () -> future.get());
+        assertTrue(exception.getCause() instanceof IllegalArgumentException);
+        assertTrue(exception.getCause().getMessage().contains("Name"));
     }
 }
