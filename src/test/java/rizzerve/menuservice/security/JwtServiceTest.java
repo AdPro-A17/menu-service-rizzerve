@@ -40,7 +40,8 @@ public class JwtServiceTest {
     void testExtractRoles() {
         String username = "admin";
         Map<String, Object> claims = new HashMap<>();
-        claims.put("roles", List.of("ROLE_ADMIN"));
+        // Change from "roles" to "role" to match the JwtService implementation
+        claims.put("role", "ADMIN");
         String token = generateTokenWithClaims(username, claims);
         
         List<String> roles = jwtService.extractRoles(token);

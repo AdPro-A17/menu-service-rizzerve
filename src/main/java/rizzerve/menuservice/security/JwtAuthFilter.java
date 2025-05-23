@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,27 +47,34 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             final String username = jwtService.extractUsername(jwt);
             
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                List<String> roleStrings = jwtService.extractRoles(jwt);
-                List<GrantedAuthority> authorities = roleStrings.stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList());
+                // Use userDetailsService to load user details
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 
-                UserDetails userDetails = User.builder()
-                    .username(username)
-                    .password("")
-                    .authorities(authorities)
-                    .build();
-                
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                // Validate the token
+                if (jwtService.validateToken(jwt, userDetails)) {
+                    List<String> roleStrings = jwtService.extractRoles(jwt);
+                    List<GrantedAuthority> authorities = roleStrings.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+                    
+                    // If no roles from token, use authorities from userDetails
+                    if (authorities.isEmpty()) {
+                        authorities = new ArrayList<>(userDetails.getAuthorities());
+                    }
+                    
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        authorities
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
         } catch (Exception e) {
+            // Clear security context on exception
             logger.error("JWT validation failed: " + e.getMessage());
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

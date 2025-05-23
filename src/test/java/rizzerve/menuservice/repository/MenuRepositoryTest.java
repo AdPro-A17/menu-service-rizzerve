@@ -11,6 +11,7 @@ import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.factory.MenuItemFactory;
 import rizzerve.menuservice.factory.MenuItemFactoryCreator;
 import rizzerve.menuservice.model.MenuItem;
+import rizzerve.menuservice.model.Food;
 import rizzerve.menuservice.dto.MenuItemRequest;
 
 import java.util.Optional;
