@@ -388,4 +388,119 @@ public class MenuServiceTest {
         assertTrue(exception.getCause() instanceof IllegalArgumentException);
         assertTrue(exception.getCause().getMessage().contains("Name"));
     }
+
+    @Test
+    void testUpdateDrinkMenuItem() {
+        UUID id = UUID.randomUUID();
+
+        Drink existingDrink = new Drink();
+        existingDrink.setId(id);
+        existingDrink.setName("Lemon Tea");
+        existingDrink.setDescription("Cold lemon tea");
+        existingDrink.setPrice(8000.0);
+        existingDrink.setIsCold(false);     // will be toggled
+        existingDrink.setImage("https://example.com/lemon-tea.jpg");
+
+        MenuItemRequest updateRequest = new MenuItemRequest();
+        updateRequest.setName("Lemon Tea Large");
+        updateRequest.setDescription("Iced lemon tea – large");
+        updateRequest.setPrice(10000.0);
+        updateRequest.setIsCold(true);      // triggers the drink-specific branch
+        updateRequest.setImage("https://example.com/lemon-tea-large.jpg");
+
+        when(menuRepository.findById(id)).thenReturn(Optional.of(existingDrink));
+        when(menuRepository.save(any(MenuItem.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MenuItem updated = menuService.updateMenuItem(id, updateRequest);
+
+        assertNotNull(updated);
+        assertEquals("Lemon Tea Large", updated.getName());
+        assertTrue(((Drink) updated).getIsCold(), "isCold should have been updated");
+    }
+
+    @Test
+    void testAddMenuItemWithEmptyDescriptionShouldThrow() {
+        MenuItemRequest badRequest = new MenuItemRequest();
+        badRequest.setName("Anything");
+        badRequest.setDescription("");      // triggers description validation
+        badRequest.setPrice(5.0);
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> menuService.addMenuItem(MenuType.FOOD, badRequest)
+        );
+        assertTrue(ex.getMessage().contains("Description"));
+    }
+
+    @Test
+    void testAddMenuItemWithNegativePriceShouldThrow() {
+        MenuItemRequest badRequest = new MenuItemRequest();
+        badRequest.setName("Anything");
+        badRequest.setDescription("Bad price");
+        badRequest.setPrice(0.0);           // triggers price validation
+
+        IllegalArgumentException ex = assertThrows(
+                IllegalArgumentException.class,
+                () -> menuService.addMenuItem(MenuType.FOOD, badRequest)
+        );
+        assertTrue(ex.getMessage().contains("Price"));
+    }
+
+    @Test
+    void testUpdateMenuItemAsyncWhenItemMissingReturnsNull() throws Exception {
+        UUID missingId = UUID.randomUUID();
+        when(menuRepository.findById(missingId)).thenReturn(Optional.empty());
+
+        MenuItemRequest req = new MenuItemRequest();
+        req.setName("Whatever");
+        req.setDescription("Whatever");
+        req.setPrice(1.0);
+
+        MenuItem result = menuService
+                .updateMenuItemAsync(missingId, req)
+                .get(3, TimeUnit.SECONDS);
+
+        assertNull(result, "Async update should return null when item not found");
+    }
+
+    @Test
+    void testUpdateDrinkMenuItemAsync() throws Exception {
+        UUID id = UUID.randomUUID();
+
+        Drink existingDrink = new Drink();
+        existingDrink.setId(id);
+        existingDrink.setName("Choco Shake");
+        existingDrink.setDescription("Chocolate milkshake");
+        existingDrink.setPrice(15000.0);
+        existingDrink.setIsCold(false);
+
+        MenuItemRequest updateReq = new MenuItemRequest();
+        updateReq.setName("Choco Shake Jumbo");
+        updateReq.setDescription("Bigger chocolate milkshake");
+        updateReq.setPrice(18000.0);
+        updateReq.setIsCold(true);
+
+        when(menuRepository.findById(id)).thenReturn(Optional.of(existingDrink));
+        when(menuRepository.save(any(MenuItem.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MenuItem updated = menuService
+                .updateMenuItemAsync(id, updateReq)
+                .get(3, TimeUnit.SECONDS);
+
+        assertNotNull(updated);
+        assertEquals("Choco Shake Jumbo", updated.getName());
+        assertTrue(((Drink) updated).getIsCold());
+    }
+
+    @Test
+    void testDeleteMenuItemAsyncWhenMissingReturnsNull() throws Exception {
+        UUID missingId = UUID.randomUUID();
+        when(menuRepository.findById(missingId)).thenReturn(Optional.empty());
+
+        MenuItem result = menuService
+                .deleteMenuItemAsync(missingId)
+                .get(3, TimeUnit.SECONDS);
+
+        assertNull(result);
+    }
 }
