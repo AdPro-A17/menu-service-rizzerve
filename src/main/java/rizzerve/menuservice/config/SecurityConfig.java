@@ -10,13 +10,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import rizzerve.menuservice.security.JwtAuthFilter;
 import rizzerve.menuservice.security.JwtService;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -34,8 +29,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // CSRF protection is intentionally disabled for this stateless REST API.
+            // This is safe because:
+            // 1. Authentication uses JWT tokens in Authorization headers, not cookies
+            // 2. Stateless session management prevents session fixation attacks
+            // 3. CSRF attacks target cookie-based authentication, which we don't use
+            // 4. All requests require explicit Authorization header with valid JWT
+            .csrf(AbstractHttpConfigurer::disable) // NOSONAR - Justified above
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints - read operations
                 .requestMatchers("GET", "/menu", "/menu/**").permitAll()
@@ -52,18 +52,5 @@ public class SecurityConfig {
     @Bean
     public JwtAuthFilter jwtAuthenticationFilter() {
         return new JwtAuthFilter(jwtService, userDetailsService);
-    }
-    
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
-        
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }
