@@ -6,6 +6,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
+// Version variables
+val jjwtVersion = "0.11.5"
+val dotenvVersion = "2.3.2"
+
 sonar {
     properties {
         property("sonar.projectKey", "menu-service-rizzerve")
@@ -33,26 +37,39 @@ repositories {
 }
 
 dependencies {
+    // Spring Boot starters
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    
+    // Database
     implementation("org.postgresql:postgresql")
-    implementation("io.github.cdimascio:dotenv-java:2.3.2")
-    implementation("org.springframework.boot:spring-boot-starter-aop") // Add AOP for @Async
+    
+    // JWT
+    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
+    
+    // Utilities
+    implementation("io.github.cdimascio:dotenv-java:$dotenvVersion")
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    
+    // Lombok
     compileOnly("org.projectlombok:lombok")
+    annotationProcessor("org.projectlombok:lombok")
+    
+    // Development tools
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    annotationProcessor("org.projectlombok:lombok")
+    
+    // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("com.h2database:h2")
-    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
-    implementation("org.springframework.boot:spring-boot-starter-security")
     testImplementation("org.springframework.security:spring-security-test")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.micrometer:micrometer-registry-prometheus")
+    testImplementation("com.h2database:h2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
