@@ -64,10 +64,10 @@ public class MenuService {
         existingItem.setPrice(request.getPrice());
         existingItem.setImage(request.getImage());
         
-        if (existingItem instanceof Food && request.getIsSpicy() != null) {
-            ((Food) existingItem).setIsSpicy(request.getIsSpicy());
-        } else if (existingItem instanceof Drink && request.getIsCold() != null) {
-            ((Drink) existingItem).setIsCold(request.getIsCold());
+        if (existingItem instanceof Food food && request.getIsSpicy() != null) {
+            food.setIsSpicy(request.getIsSpicy());
+        } else if (existingItem instanceof Drink drink && request.getIsCold() != null) {
+            drink.setIsCold(request.getIsCold());
         }
         
         return menuRepository.save(existingItem);
@@ -127,10 +127,10 @@ public class MenuService {
             existingItem.setPrice(request.getPrice());
             existingItem.setImage(request.getImage());
             
-            if (existingItem instanceof Food && request.getIsSpicy() != null) {
-                ((Food) existingItem).setIsSpicy(request.getIsSpicy());
-            } else if (existingItem instanceof Drink && request.getIsCold() != null) {
-                ((Drink) existingItem).setIsCold(request.getIsCold());
+            if (existingItem instanceof Food food && request.getIsSpicy() != null) {
+                food.setIsSpicy(request.getIsSpicy());
+            } else if (existingItem instanceof Drink drink && request.getIsCold() != null) {
+                drink.setIsCold(request.getIsCold());
             }
             
             MenuItem updatedItem = menuRepository.save(existingItem);

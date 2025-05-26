@@ -26,7 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class MenuServiceTest {
+class MenuServiceTest {
 
     @Mock
     private MenuRepository menuRepository;
@@ -48,10 +48,8 @@ public class MenuServiceTest {
         request.setImage("https://example.com/mie-goreng.jpg");
 
         // Mock repository behavior
-        Mockito.when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation -> {
-            MenuItem item = invocation.getArgument(0);
-            return item;
-        });
+        Mockito.when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation ->
+            invocation.getArgument(0));
 
         MenuItem savedItem = menuService.addMenuItem(MenuType.FOOD, request);
 
@@ -299,10 +297,8 @@ public class MenuServiceTest {
         request.setImage("https://example.com/mie-goreng.jpg");
 
         // Mock repository behavior
-        Mockito.when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation -> {
-            MenuItem item = invocation.getArgument(0);
-            return item;
-        });
+        Mockito.when(menuRepository.save(any(MenuItem.class))).thenAnswer(invocation ->
+            invocation.getArgument(0));
 
         CompletableFuture<MenuItem> future = menuService.addMenuItemAsync(MenuType.FOOD, request);
         MenuItem savedItem = future.get(5, TimeUnit.SECONDS);
@@ -384,7 +380,7 @@ public class MenuServiceTest {
         
         CompletableFuture<MenuItem> future = menuService.addMenuItemAsync(MenuType.FOOD, request);
         
-        ExecutionException exception = assertThrows(ExecutionException.class, () -> future.get());
+        ExecutionException exception = assertThrows(ExecutionException.class, future::get);
         assertTrue(exception.getCause() instanceof IllegalArgumentException);
         assertTrue(exception.getCause().getMessage().contains("Name"));
     }

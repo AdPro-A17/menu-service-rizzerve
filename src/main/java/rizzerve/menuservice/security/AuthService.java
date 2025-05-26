@@ -43,11 +43,11 @@ public class AuthService {
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
             
             // Make API call to validate token
-            ResponseEntity<Map> response = restTemplate.exchange(
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 validateTokenUrl,
                 HttpMethod.GET,
                 requestEntity,
-                Map.class
+                (Class<Map<String, Object>>) (Class<?>) Map.class
             );
             
             // Check if token is valid based on response
@@ -87,16 +87,19 @@ public class AuthService {
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
             
             // Make API call to get user details
-            ResponseEntity<Map> response = restTemplate.exchange(
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 userInfoUrl,
                 HttpMethod.GET,
                 requestEntity,
-                Map.class
+                (Class<Map<String, Object>>) (Class<?>) Map.class
             );
             
             // Extract username/email from response
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                return (String) response.getBody().get("email");
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody != null) {
+                    return (String) responseBody.get("email");
+                }
             }
             
             return null;
@@ -129,18 +132,21 @@ public class AuthService {
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
             
             // Make API call to get user details
-            ResponseEntity<Map> response = restTemplate.exchange(
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 userInfoUrl,
                 HttpMethod.GET,
                 requestEntity,
-                Map.class
+                (Class<Map<String, Object>>) (Class<?>) Map.class
             );
             
             // Extract roles from response
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                String roleStr = (String) response.getBody().get("role");
-                if (roleStr != null) {
-                    return new String[]{roleStr};
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody != null) {
+                    String roleStr = (String) responseBody.get("role");
+                    if (roleStr != null) {
+                        return new String[]{roleStr};
+                    }
                 }
             }
             
@@ -176,16 +182,19 @@ public class AuthService {
             HttpEntity<Map<String, String>> requestEntity = new HttpEntity<>(loginRequest, headers);
             
             // Make API call to login
-            ResponseEntity<Map> response = restTemplate.exchange(
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 loginUrl,
                 HttpMethod.POST,
                 requestEntity,
-                Map.class
+                (Class<Map<String, Object>>) (Class<?>) Map.class
             );
             
             // Extract access token from response
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                return (String) response.getBody().get("accessToken");
+            if (response.getStatusCode() == HttpStatus.OK) {
+                Map<String, Object> responseBody = response.getBody();
+                if (responseBody != null) {
+                    return (String) responseBody.get("accessToken");
+                }
             }
             
             return null;

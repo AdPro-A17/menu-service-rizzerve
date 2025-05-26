@@ -10,13 +10,12 @@ public class UserConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> {
+        return username -> 
             // This is just a placeholder for the JWT authentication flow
-            return User.builder()
+            User.builder()
                     .username(username)
                     .password("")
                     .roles("ADMIN")
                     .build();
-        };
     }
 }

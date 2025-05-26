@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 @ActiveProfiles("test")
-public class MenuRepositoryTest {
+class MenuRepositoryTest {
 
     @Autowired
     private TestEntityManager entityManager;

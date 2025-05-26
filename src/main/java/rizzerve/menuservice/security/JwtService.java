@@ -18,8 +18,8 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
-    private String SECRET_KEY;
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -32,8 +32,7 @@ public class JwtService {
         
         // Check for role format from the auth service
         Object role = claims.get("role");
-        if (role instanceof String) {
-            String roleStr = (String) role;
+        if (role instanceof String roleStr) {
             if ("ADMIN".equals(roleStr)) {
                 roleList.add("ROLE_ADMIN");
             }
@@ -51,11 +50,8 @@ public class JwtService {
         try {
             final String username = extractUsername(token);
             return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-        } catch (ExpiredJwtException e) {
-            // Token is expired, validation fails
-            return false;
-        } catch (Exception e) {
-            // Any other exception means the token is invalid
+        } catch (ExpiredJwtException | Exception e) {
+            // Token is expired or invalid, validation fails
             return false;
         }
     }
@@ -87,7 +83,7 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

@@ -37,7 +37,7 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot starters
+    // Implementation dependencies - Spring Boot starters
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -45,25 +45,25 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     
-    // Database
+    // Implementation dependencies - Database and external libraries
     implementation("org.postgresql:postgresql")
-    
-    // JWT
     implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
-    
-    // Utilities
     implementation("io.github.cdimascio:dotenv-java:$dotenvVersion")
     implementation("io.micrometer:micrometer-registry-prometheus")
     
-    // Lombok
+    // Runtime dependencies
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
+    
+    // Compile-only dependencies
     compileOnly("org.projectlombok:lombok")
+    
+    // Annotation processors
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     annotationProcessor("org.projectlombok:lombok")
     
-    // Development tools
+    // Development dependencies
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     
     // Test dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test")

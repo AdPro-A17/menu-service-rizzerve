@@ -28,14 +28,14 @@ public class GlobalExceptionHandler {
         errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
         errorResponse.setMessage("Validation error");
         
-        result.getFieldErrors().forEach(fieldError -> {
+        result.getFieldErrors().forEach(fieldError ->
             errorResponse.getErrors().add(
                 new ValidationErrorResponse.FieldError(
                     fieldError.getField(), 
                     fieldError.getDefaultMessage()
                 )
-            );
-        });
+            )
+        );
         
         return ResponseEntity.badRequest().body(errorResponse);
     }

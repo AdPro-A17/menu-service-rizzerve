@@ -2,7 +2,6 @@ package rizzerve.menuservice.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,11 +12,13 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+    private final Environment environment;
 
-    @Autowired
-    private Environment environment;
+    public DatabaseInitializer(JdbcTemplate jdbcTemplate, Environment environment) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.environment = environment;
+    }
 
     @Override
     public void run(String... args) throws Exception {
