@@ -23,4 +23,6 @@ public class MenuItemRequest {
     private Boolean isCold;
     
     private String image;
+
+    private Boolean available = true;
 }

@@ -63,6 +63,7 @@ public class MenuService {
         existingItem.setDescription(request.getDescription());
         existingItem.setPrice(request.getPrice());
         existingItem.setImage(request.getImage());
+        existingItem.setAvailable(request.getAvailable());
         
         if (existingItem instanceof Food food && request.getIsSpicy() != null) {
             food.setIsSpicy(request.getIsSpicy());
@@ -126,6 +127,7 @@ public class MenuService {
             existingItem.setDescription(request.getDescription());
             existingItem.setPrice(request.getPrice());
             existingItem.setImage(request.getImage());
+            existingItem.setAvailable(request.getAvailable());
             
             if (existingItem instanceof Food food && request.getIsSpicy() != null) {
                 food.setIsSpicy(request.getIsSpicy());
