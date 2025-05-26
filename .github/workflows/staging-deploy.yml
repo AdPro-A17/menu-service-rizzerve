@@ -26,6 +26,9 @@ jobs:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
           DUCKDNS_DOMAIN: ${{ secrets.DUCKDNS_DOMAIN }}
           DUCKDNS_TOKEN: ${{ secrets.DUCKDNS_TOKEN }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
         run: |
           ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << EOF
             # Step 1: Refresh DuckDNS IP
@@ -44,5 +47,8 @@ jobs:
               -e PGDATABASE='${PGDATABASE}' \
               -e PGUSER='${PGUSER}' \
               -e PGPASSWORD='${PGPASSWORD}' \
+              -e JWT_SECRET='${JWT_SECRET}' \
+              -e FRONTEND_URL='${FRONTEND_URL}' \
+              -e SERVER_PORT='${SERVER_PORT}' \
               menu-service-rizzerve:latest
           EOF
