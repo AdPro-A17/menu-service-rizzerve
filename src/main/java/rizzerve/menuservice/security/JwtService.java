@@ -32,10 +32,9 @@ public class JwtService {
         
         // Check for role format from the auth service
         Object role = claims.get("role");
-        if (role instanceof String roleStr) {
-            if ("ADMIN".equals(roleStr)) {
-                roleList.add("ROLE_ADMIN");
-            }
+        
+        if (role instanceof String roleStr && "ADMIN".equals(roleStr)) {
+            roleList.add("ROLE_ADMIN");
         }
         
         // Also check for adminId which indicates ADMIN role
