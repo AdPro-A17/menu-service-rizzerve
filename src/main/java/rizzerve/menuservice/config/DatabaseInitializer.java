@@ -6,6 +6,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import rizzerve.menuservice.exception.DatabaseInitializationException;
 
 @Component
 public class DatabaseInitializer implements CommandLineRunner {
@@ -61,6 +62,8 @@ public class DatabaseInitializer implements CommandLineRunner {
 
     private void initializeMenuItemTable() {
         try {
+            logger.info("Starting table initialization process...");
+            
             // Create the menu_item table with proper structure
             String createTableSql = """
                 CREATE TABLE IF NOT EXISTS menu_item (
@@ -91,8 +94,12 @@ public class DatabaseInitializer implements CommandLineRunner {
             logger.info("Database indexes created successfully");
             
         } catch (Exception e) {
-            logger.error("Failed to initialize menu_item table: {}", e.getMessage());
-            throw new RuntimeException("Database initialization failed", e);
+            logger.error("Failed to initialize menu_item table: {}", e.getMessage(), e);
+            logger.error("This might be due to database connectivity issues or insufficient permissions");
+            logger.error("Check your database configuration and ensure the user has CREATE TABLE privileges");
+            throw new DatabaseInitializationException(
+                "Failed to initialize menu_item table structure. " +
+                "Ensure database is accessible and user has proper permissions.", e);
         }
     }
 }
