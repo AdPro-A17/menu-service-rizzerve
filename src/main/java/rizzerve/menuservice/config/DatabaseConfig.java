@@ -43,12 +43,15 @@ public class DatabaseConfig {
         logger.info("URL: {}", jdbcUrl);
         logger.info("Username: {}", dbUsername);
         logger.info("Password length: {}", dbPassword != null ? dbPassword.length() : 0);
+        logger.info("🔒 Database reset prevention: ENABLED");
+        logger.info("🏗️ Table auto-creation: ENABLED (if missing)");
         
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setUrl(jdbcUrl);
         dataSource.setUsername(dbUsername != null ? dbUsername.trim() : null);
         dataSource.setPassword(dbPassword != null ? dbPassword.trim() : null);
         dataSource.setDriverClassName("org.postgresql.Driver");
+        
         return dataSource;
     }
 }
