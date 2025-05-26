@@ -46,8 +46,8 @@ public class DatabaseConfig {
         
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
         dataSource.setUrl(jdbcUrl);
-        dataSource.setUsername(dbUsername.trim()); // Trim to remove any whitespace
-        dataSource.setPassword(dbPassword.trim()); // Trim to remove any whitespace
+        dataSource.setUsername(dbUsername != null ? dbUsername.trim() : null);
+        dataSource.setPassword(dbPassword != null ? dbPassword.trim() : null);
         dataSource.setDriverClassName("org.postgresql.Driver");
         return dataSource;
     }
