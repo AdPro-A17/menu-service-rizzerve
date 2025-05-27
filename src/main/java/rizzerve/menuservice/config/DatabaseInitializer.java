@@ -61,45 +61,35 @@ public class DatabaseInitializer implements CommandLineRunner {
     }
 
     private void initializeMenuItemTable() {
-        try {
-            logger.info("Starting table initialization process...");
-            
-            // Create the menu_item table with proper structure
-            String createTableSql = """
-                CREATE TABLE IF NOT EXISTS menu_item (
-                    id UUID PRIMARY KEY,
-                    name VARCHAR(255) NOT NULL,
-                    description TEXT NOT NULL,
-                    price DECIMAL(10,2) NOT NULL,
-                    available BOOLEAN NOT NULL DEFAULT true,
-                    image VARCHAR(500),
-                    item_type VARCHAR(31) NOT NULL,
-                    is_spicy BOOLEAN,
-                    is_cold BOOLEAN,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-                """;
-            
-            jdbcTemplate.execute(createTableSql);
-            logger.info("Table structure created successfully");
-            
-            // Create indexes for better performance
-            String createIndexSql = """
-                CREATE INDEX IF NOT EXISTS idx_menu_item_type ON menu_item(item_type);
-                CREATE INDEX IF NOT EXISTS idx_menu_item_available ON menu_item(available);
-                """;
-            
-            jdbcTemplate.execute(createIndexSql);
-            logger.info("Database indexes created successfully");
-            
-        } catch (Exception e) {
-            logger.error("Failed to initialize menu_item table: {}", e.getMessage(), e);
-            logger.error("This might be due to database connectivity issues or insufficient permissions");
-            logger.error("Check your database configuration and ensure the user has CREATE TABLE privileges");
-            throw new DatabaseInitializationException(
-                "Failed to initialize menu_item table structure. " +
-                "Ensure database is accessible and user has proper permissions.", e);
-        }
-    }
+        logger.info("Starting table initialization process...");
+        
+        // Create the menu_item table with proper structure
+        String createTableSql = """
+            CREATE TABLE IF NOT EXISTS menu_item (
+                id UUID PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                description TEXT NOT NULL,
+                price DECIMAL(10,2) NOT NULL,
+                available BOOLEAN NOT NULL DEFAULT true,
+                image VARCHAR(500),
+                item_type VARCHAR(31) NOT NULL,
+                is_spicy BOOLEAN,
+                is_cold BOOLEAN,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """;
+        
+        jdbcTemplate.execute(createTableSql);
+        logger.info("Table structure created successfully");
+        
+        // Create indexes for better performance
+        String createIndexSql = """
+            CREATE INDEX IF NOT EXISTS idx_menu_item_type ON menu_item(item_type);
+            CREATE INDEX IF NOT EXISTS idx_menu_item_available ON menu_item(available);
+            """;
+        
+        jdbcTemplate.execute(createIndexSql);
+        logger.info("Database indexes created successfully");
+    } 
 }
