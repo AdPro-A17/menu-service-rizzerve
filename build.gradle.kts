@@ -50,7 +50,6 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
     implementation("io.github.cdimascio:dotenv-java:$dotenvVersion")
     implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
     
     // Runtime dependencies
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
