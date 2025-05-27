@@ -85,12 +85,11 @@ public class DatabaseInitializer implements CommandLineRunner {
             logger.info("Table structure created successfully");
             
             // Create indexes for better performance
-            String createIndexSql = """
-                CREATE INDEX IF NOT EXISTS idx_menu_item_type ON menu_item(item_type);
-                CREATE INDEX IF NOT EXISTS idx_menu_item_available ON menu_item(available);
-                """;
+            String createTypeIndexSql = "CREATE INDEX IF NOT EXISTS idx_menu_item_type ON menu_item(item_type)";
+            String createAvailableIndexSql = "CREATE INDEX IF NOT EXISTS idx_menu_item_available ON menu_item(available)";
             
-            jdbcTemplate.execute(createIndexSql);
+            jdbcTemplate.execute(createTypeIndexSql);
+            jdbcTemplate.execute(createAvailableIndexSql);
             logger.info("Database indexes created successfully");
             
         } catch (Exception e) {
