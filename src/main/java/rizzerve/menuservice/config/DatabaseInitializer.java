@@ -57,6 +57,9 @@ public class DatabaseInitializer implements CommandLineRunner {
         } catch (Exception e) {
             logger.error("Error connecting to database: {}", e.getMessage());
             logger.error("Make sure your PostgreSQL database is configured correctly and accessible");
+            throw new DatabaseInitializationException(
+                "Failed to establish database connection during initialization. " +
+                "Check database configuration and accessibility.", e);
         }
     }
 
