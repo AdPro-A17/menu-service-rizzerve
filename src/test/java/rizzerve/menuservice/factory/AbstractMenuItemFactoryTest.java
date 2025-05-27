@@ -12,7 +12,6 @@ import rizzerve.menuservice.model.Food;
 import rizzerve.menuservice.model.MenuItem;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
