@@ -57,16 +57,13 @@ public class DatabaseInitializer implements CommandLineRunner {
         } catch (Exception e) {
             logger.error("Error connecting to database: {}", e.getMessage());
             logger.error("Make sure your PostgreSQL database is configured correctly and accessible");
-            throw new DatabaseInitializationException(
-                "Failed to establish database connection during initialization. " +
-                "Check database configuration and accessibility.", e);
         }
     }
 
     private void initializeMenuItemTable() {
         try {
             logger.info("Starting table initialization process...");
-
+            
             // Create the menu_item table with proper structure
             String createTableSql = """
                 CREATE TABLE IF NOT EXISTS menu_item (
@@ -83,24 +80,26 @@ public class DatabaseInitializer implements CommandLineRunner {
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """;
-
+            
             jdbcTemplate.execute(createTableSql);
             logger.info("Table structure created successfully");
-
+            
             // Create indexes for better performance
-            String createTypeIndexSql = "CREATE INDEX IF NOT EXISTS idx_menu_item_type ON menu_item(item_type)";
-            String createAvailableIndexSql = "CREATE INDEX IF NOT EXISTS idx_menu_item_available ON menu_item(available)";
-
-            jdbcTemplate.execute(createTypeIndexSql);
-            jdbcTemplate.execute(createAvailableIndexSql);
+            String createIndexSql = """
+                CREATE INDEX IF NOT EXISTS idx_menu_item_type ON menu_item(item_type);
+                CREATE INDEX IF NOT EXISTS idx_menu_item_available ON menu_item(available);
+                """;
+            
+            jdbcTemplate.execute(createIndexSql);
             logger.info("Database indexes created successfully");
-
+            
         } catch (Exception e) {
-            String errorMessage = "Error occurred while initializing 'menu_item' table structure.";
-            logger.error("{} Reason: {}", errorMessage, e.getMessage(), e);
-            throw new DatabaseInitializationException(errorMessage + 
-                " Check if the database is accessible and the user has sufficient privileges.", e);
+            logger.error("Failed to initialize menu_item table: {}", e.getMessage(), e);
+            logger.error("This might be due to database connectivity issues or insufficient permissions");
+            logger.error("Check your database configuration and ensure the user has CREATE TABLE privileges");
+            throw new DatabaseInitializationException(
+                "Failed to initialize menu_item table structure. " +
+                "Ensure database is accessible and user has proper permissions.", e);
         }
     }
-
 }
