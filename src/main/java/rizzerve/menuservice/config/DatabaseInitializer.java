@@ -6,7 +6,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import rizzerve.menuservice.exception.DatabaseInitializationException;
 
 @Component
 public class DatabaseInitializer implements CommandLineRunner {
