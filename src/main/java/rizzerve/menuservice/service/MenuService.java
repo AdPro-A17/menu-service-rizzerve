@@ -1,8 +1,12 @@
 package rizzerve.menuservice.service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import rizzerve.menuservice.config.MetricsConfig;
 import rizzerve.menuservice.dto.MenuItemRequest;
 import rizzerve.menuservice.enums.MenuType;
 import rizzerve.menuservice.factory.MenuItemFactory;
@@ -20,58 +24,131 @@ import java.util.concurrent.CompletableFuture;
 public class MenuService {
 
     private final MenuRepository menuRepository;
+    private final Counter menuItemCreatedCounter;
+    private final Counter menuItemUpdatedCounter;
+    private final Counter menuItemDeletedCounter;
+    private final Counter menuItemRetrievedCounter;
+    private final Timer menuOperationTimer;
+    private final MeterRegistry meterRegistry;
 
-    public MenuService(MenuRepository menuRepository) {
+    public MenuService(MenuRepository menuRepository, MeterRegistry meterRegistry) {
         this.menuRepository = menuRepository;
+        this.meterRegistry = meterRegistry;
+        this.menuItemCreatedCounter = Counter.builder("menu.items.created")
+                .description("Number of menu items created")
+                .register(meterRegistry);
+        this.menuItemUpdatedCounter = Counter.builder("menu.items.updated")
+                .description("Number of menu items updated")
+                .register(meterRegistry);
+        this.menuItemDeletedCounter = Counter.builder("menu.items.deleted")
+                .description("Number of menu items deleted")
+                .register(meterRegistry);
+        this.menuItemRetrievedCounter = Counter.builder("menu.items.retrieved")
+                .description("Number of menu items retrieved")
+                .register(meterRegistry);
+        this.menuOperationTimer = Timer.builder("menu.operation.duration")
+                .description("Time taken for menu operations")
+                .register(meterRegistry);
     }
 
     @Transactional
     public MenuItem addMenuItem(MenuType type, MenuItemRequest request) {
-        validateRequest(request);
-        MenuItemFactory factory = MenuItemFactoryCreator.getFactory(type);
-        MenuItem item = factory.createMenuItem(request);
-        return menuRepository.save(item);
+        long startTime = System.nanoTime();
+        try {
+            validateRequest(request);
+            MenuItemFactory factory = MenuItemFactoryCreator.getFactory(type);
+            MenuItem item = factory.createMenuItem(request);
+            MenuItem savedItem = menuRepository.save(item);
+            menuItemCreatedCounter.increment();
+            return savedItem;
+        } finally {
+            Timer.builder("menu.operation.duration")
+                    .tag("operation", "create")
+                    .register(meterRegistry)
+                    .record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
+        }
     }
 
     public List<MenuItem> getAllMenuItems() {
-        return menuRepository.findAll();
+        long startTime = System.nanoTime();
+        try {
+            List<MenuItem> items = menuRepository.findAll();
+            menuItemRetrievedCounter.increment(items.size());
+            return items;
+        } finally {
+            Timer.builder("menu.operation.duration")
+                    .tag("operation", "getAll")
+                    .register(meterRegistry)
+                    .record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
+        }
     }
 
     public MenuItem getMenuItemById(UUID id) {
-        return menuRepository.findById(id).orElse(null);
+        long startTime = System.nanoTime();
+        try {
+            MenuItem item = menuRepository.findById(id).orElse(null);
+            if (item != null) {
+                menuItemRetrievedCounter.increment();
+            }
+            return item;
+        } finally {
+            Timer.builder("menu.operation.duration")
+                    .tag("operation", "getById")
+                    .register(meterRegistry)
+                    .record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
+        }
     }
 
     @Transactional
     public MenuItem deleteMenuItem(UUID id) {
-        MenuItem item = menuRepository.findById(id).orElse(null);
-        if (item == null) {
-            return null;
+        long startTime = System.nanoTime();
+        try {
+            MenuItem item = menuRepository.findById(id).orElse(null);
+            if (item == null) {
+                return null;
+            }
+            menuRepository.deleteById(id);
+            menuItemDeletedCounter.increment();
+            return item;
+        } finally {
+            Timer.builder("menu.operation.duration")
+                    .tag("operation", "delete")
+                    .register(meterRegistry)
+                    .record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
         }
-        menuRepository.deleteById(id);
-        return item;
     }
 
     @Transactional
     public MenuItem updateMenuItem(UUID id, MenuItemRequest request) {
-        validateRequest(request);
-        MenuItem existingItem = menuRepository.findById(id).orElse(null);
-        if (existingItem == null) {
-            return null;
+        long startTime = System.nanoTime();
+        try {
+            validateRequest(request);
+            MenuItem existingItem = menuRepository.findById(id).orElse(null);
+            if (existingItem == null) {
+                return null;
+            }
+            
+            existingItem.setName(request.getName());
+            existingItem.setDescription(request.getDescription());
+            existingItem.setPrice(request.getPrice());
+            existingItem.setImage(request.getImage());
+            existingItem.setAvailable(request.getAvailable());
+            
+            if (existingItem instanceof Food food && request.getIsSpicy() != null) {
+                food.setIsSpicy(request.getIsSpicy());
+            } else if (existingItem instanceof Drink drink && request.getIsCold() != null) {
+                drink.setIsCold(request.getIsCold());
+            }
+            
+            MenuItem updatedItem = menuRepository.save(existingItem);
+            menuItemUpdatedCounter.increment();
+            return updatedItem;
+        } finally {
+            Timer.builder("menu.operation.duration")
+                    .tag("operation", "update")
+                    .register(meterRegistry)
+                    .record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
         }
-        
-        existingItem.setName(request.getName());
-        existingItem.setDescription(request.getDescription());
-        existingItem.setPrice(request.getPrice());
-        existingItem.setImage(request.getImage());
-        existingItem.setAvailable(request.getAvailable());
-        
-        if (existingItem instanceof Food food && request.getIsSpicy() != null) {
-            food.setIsSpicy(request.getIsSpicy());
-        } else if (existingItem instanceof Drink drink && request.getIsCold() != null) {
-            drink.setIsCold(request.getIsCold());
-        }
-        
-        return menuRepository.save(existingItem);
     }
 
     /**
@@ -79,8 +156,14 @@ public class MenuService {
      */
     @Async("taskExecutor")
     public CompletableFuture<List<MenuItem>> getAllMenuItemsAsync() {
-        List<MenuItem> menuItems = menuRepository.findAll();
-        return CompletableFuture.completedFuture(menuItems);
+        long startTime = System.nanoTime();
+        try {
+            List<MenuItem> menuItems = menuRepository.findAll();
+            menuItemRetrievedCounter.increment(menuItems.size());
+            return CompletableFuture.completedFuture(menuItems);
+        } finally {
+            menuOperationTimer.record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
+        }
     }
 
     /**
@@ -88,7 +171,16 @@ public class MenuService {
      */
     @Async("taskExecutor")
     public CompletableFuture<MenuItem> getMenuItemByIdAsync(UUID id) {
-        return CompletableFuture.completedFuture(menuRepository.findById(id).orElse(null));
+        long startTime = System.nanoTime();
+        try {
+            MenuItem item = menuRepository.findById(id).orElse(null);
+            if (item != null) {
+                menuItemRetrievedCounter.increment();
+            }
+            return CompletableFuture.completedFuture(item);
+        } finally {
+            menuOperationTimer.record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
+        }
     }
 
     /**
@@ -97,16 +189,20 @@ public class MenuService {
     @Async("taskExecutor")
     @Transactional
     public CompletableFuture<MenuItem> addMenuItemAsync(MenuType type, MenuItemRequest request) {
+        long startTime = System.nanoTime();
         try {
             validateRequest(request);
             MenuItemFactory factory = MenuItemFactoryCreator.getFactory(type);
             MenuItem item = factory.createMenuItem(request);
             MenuItem savedItem = menuRepository.save(item);
+            menuItemCreatedCounter.increment();
             return CompletableFuture.completedFuture(savedItem);
         } catch (IllegalArgumentException e) {
             CompletableFuture<MenuItem> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
+        } finally {
+            menuOperationTimer.record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
         }
     }
 
@@ -116,6 +212,7 @@ public class MenuService {
     @Async("taskExecutor")
     @Transactional
     public CompletableFuture<MenuItem> updateMenuItemAsync(UUID id, MenuItemRequest request) {
+        long startTime = System.nanoTime();
         try {
             validateRequest(request);
             MenuItem existingItem = menuRepository.findById(id).orElse(null);
@@ -136,11 +233,14 @@ public class MenuService {
             }
             
             MenuItem updatedItem = menuRepository.save(existingItem);
+            menuItemUpdatedCounter.increment();
             return CompletableFuture.completedFuture(updatedItem);
         } catch (IllegalArgumentException e) {
             CompletableFuture<MenuItem> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
+        } finally {
+            menuOperationTimer.record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
         }
     }
 
@@ -150,12 +250,18 @@ public class MenuService {
     @Async("taskExecutor")
     @Transactional
     public CompletableFuture<MenuItem> deleteMenuItemAsync(UUID id) {
-        MenuItem item = menuRepository.findById(id).orElse(null);
-        if (item == null) {
-            return CompletableFuture.completedFuture(null);
+        long startTime = System.nanoTime();
+        try {
+            MenuItem item = menuRepository.findById(id).orElse(null);
+            if (item == null) {
+                return CompletableFuture.completedFuture(null);
+            }
+            menuRepository.deleteById(id);
+            menuItemDeletedCounter.increment();
+            return CompletableFuture.completedFuture(item);
+        } finally {
+            menuOperationTimer.record(System.nanoTime() - startTime, java.util.concurrent.TimeUnit.NANOSECONDS);
         }
-        menuRepository.deleteById(id);
-        return CompletableFuture.completedFuture(item);
     }
 
     private void validateRequest(MenuItemRequest request) {

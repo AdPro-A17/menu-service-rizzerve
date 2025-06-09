@@ -50,6 +50,7 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
     implementation("io.github.cdimascio:dotenv-java:$dotenvVersion")
     implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("io.micrometer:micrometer-core:1.12.0")
     
     // Runtime dependencies
     runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
